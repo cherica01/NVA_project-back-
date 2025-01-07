@@ -7,7 +7,15 @@ class Event(models.Model):
     company_name = models.CharField(max_length=100)
     event_code = models.CharField(max_length=50, unique=True)
     agents = models.ManyToManyField('accounts.Agent', related_name='events')
+    start_date = models.DateField()  # Date de début
+    end_date = models.DateField()    # Date de fin
 
+    def is_agent_available(self, agent):
+    # Vérifie si l'agent est disponible pour d'autres événements
+     for event in agent.events.exclude(id=self.id):  # Exclure l'événement actuel
+        if (self.start_date <= event.end_date and self.end_date >= event.start_date):
+            return False
+     return True
 class Attendance(models.Model):
     agent = models.ForeignKey('accounts.Agent', on_delete=models.CASCADE, related_name='attendances')
     date = models.DateField()

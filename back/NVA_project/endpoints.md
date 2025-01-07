@@ -63,3 +63,18 @@
 
 * (GET) MIJERY HISTORIQUE DE PAYMENT 
 `/api/management/agent/payments/history/`
+
+## GESTION EVENT 
+*(POST) CREER EVENT 
+`/api/management/create-event/`
+*forme de donnnee
+{
+    "location": "Antananarivo",
+    "company_name": "Tech Corp",
+    "event_code": "EVT2025",
+    "start_date": "2025-01-15",
+    "end_date": "2025-01-20",
+    "agents": [1, 2, 3]
+}
+*(PATCH) MIS A JOUR EVENT
+`/api/management/events/<int:pk>/update/`

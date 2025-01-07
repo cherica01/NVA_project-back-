@@ -10,7 +10,9 @@ from .serializers import NotificationSerializer
 from .models import Payment
 from django.db import models
 from .serializers import PaymentSerializer
-
+from django.shortcuts import get_object_or_404
+from .serializers import EventSerializer
+from .models import Event
 from rest_framework.permissions import IsAdminUser
 #POST
 class SendNotificationView(APIView):
@@ -193,3 +195,51 @@ class PaymentHistoryView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+#gestion event 
+
+#(post)
+
+class CreateEventView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            event = serializer.save()
+            # Inclure les usernames des agents
+            agents_usernames = [agent.username for agent in event.agents.all()]
+            return Response({
+                "message": "Event created successfully!",
+                "event": {
+                    "location": event.location,
+                    "company_name": event.company_name,
+                    "event_code": event.event_code,
+                    "start_date": event.start_date,
+                    "end_date": event.end_date,
+                    "agents": agents_usernames
+                }
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateEventView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        event = get_object_or_404(Event, pk=pk)
+        serializer = EventSerializer(event, data=request.data)
+        if serializer.is_valid():
+            updated_event = serializer.save()
+            # Inclure les usernames des agents
+            agents_usernames = [agent.username for agent in updated_event.agents.all()]
+            return Response({
+                "message": "Event updated successfully!",
+                "event": {
+                    "location": updated_event.location,
+                    "company_name": updated_event.company_name,
+                    "event_code": updated_event.event_code,
+                    "start_date": updated_event.start_date,
+                    "end_date": updated_event.end_date,
+                    "agents": agents_usernames
+                }
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
