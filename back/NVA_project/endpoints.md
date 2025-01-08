@@ -78,3 +78,6 @@
 }
 *(PATCH) MIS A JOUR EVENT
 `/api/management/events/<int:pk>/update/`
+
+*(DELETE) SUP EVENT
+`/api/management/events/<int:pk>/delete/`

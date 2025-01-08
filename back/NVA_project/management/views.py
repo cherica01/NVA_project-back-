@@ -220,7 +220,7 @@ class CreateEventView(APIView):
                 }
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+#patch
 class UpdateEventView(APIView):
     permission_classes = [IsAdminUser]
 
@@ -243,3 +243,21 @@ class UpdateEventView(APIView):
                 }
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #delete
+    
+class DeleteEventView(APIView):
+   # permission_classes = [IsAdminUser]
+
+    def delete(self, request, pk):
+        try:
+            event = Event.objects.get(pk=pk)
+            event.delete()
+            return Response(
+                {"message": "Event deleted successfully!"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except Event.DoesNotExist:
+            return Response(
+                {"error": "Event not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
