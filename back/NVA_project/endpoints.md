@@ -81,3 +81,15 @@
 
 *(DELETE) SUP EVENT
 `/api/management/events/<int:pk>/delete/`
+
+*(GET) AFFICHE GLOB
+`/api/management/events/`
+
+*filtre champ 
+`/api/management/events/?location=Antananarivo&start_date=2025-01-15`
+
+*recherche globale
+`/api/management/events/?search=Antananarivo`
+
+*tri ordre de resultat
+`/events/?ordering=start_date`

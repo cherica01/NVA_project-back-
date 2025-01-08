@@ -14,6 +14,9 @@ from django.shortcuts import get_object_or_404
 from .serializers import EventSerializer
 from .models import Event
 from rest_framework.permissions import IsAdminUser
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.generics import ListAPIView
+from django_filters.rest_framework import DjangoFilterBackend
 #POST
 class SendNotificationView(APIView):
     permission_classes = [IsAuthenticated]
@@ -261,3 +264,14 @@ class DeleteEventView(APIView):
                 {"error": "Event not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
+class ListEventsView(ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+   # permission_classes = [IsAuthenticated]
+
+    # Ajout des options de filtrage, recherche et tri
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['start_date', 'end_date', 'location', 'company_name']  # Champs pour filtrer
+    search_fields = ['location', 'company_name', 'event_code']  # Champs pour rechercher
+    ordering_fields = ['start_date', 'end_date', 'location']  # Champs pour trier
+    ordering = ['start_date']  # Tri par défaut
