@@ -249,7 +249,7 @@ class UpdateEventView(APIView):
     #delete
     
 class DeleteEventView(APIView):
-   # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def delete(self, request, pk):
         try:

@@ -1,5 +1,6 @@
 # EndPoint
 ## GESTION AGENT 
+
 * (POST) login
 
 `/api/accounts/login/`
@@ -9,7 +10,9 @@
     * "username":"riantsoa",
     * "password":"cherica"
 }
- *(POST) add Agent(mbola tsisy sary )
+*(GET) lister tout les agents 
+ `/api/accounts/agents/`
+ *(POST) Ajouter Agent
 
  `/api/accounts/add-agent/`
  
@@ -28,7 +31,7 @@
 `/api/accounts/<int:pk>/update/`
 
 *(DELETE) DELETE agent 
-`/api/accounts/<int:pk>/update/`
+`/api/accounts/<int:pk>/delete/`
 *(GET) VISITER PROFILS
 `/api/accounts/profile/`
 

@@ -8,22 +8,26 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Agent
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
+class AgentListView(APIView):
+    permission_classes = [IsAuthenticated]  # Restreindre l'accès aux utilisateurs authentifiés
 
+    def get(self, request, format=None):
+        agents = Agent.objects.filter(is_superuser=False)  # Récupère tous les agents
+        serializer = AgentSerializers(agents, many=True)  # Sérialise la liste des agents
+        return Response(serializer.data, status=status.HTTP_200_OK)  # Renvoie les données sérialisées
 class AddAgentView(APIView):
-    permission_classes = [IsAuthenticated]  # Assurez-vous que l'utilisateur est authentifié
+    permission_classes = [IsAdminUser]  # Assurez-vous que l'utilisateur est authentifié
 
     def post(self, request):
         # Vérifiez si l'utilisateur est un super utilisateur
-        if not request.user.is_superuser:
-            return Response(
-                {"detail": "Permission denied. Only superusers can add agents."},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        
 
         serializer = AgentSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AgentLoginView(APIView):
@@ -53,32 +57,27 @@ class AgentLoginView(APIView):
             return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class AgentUpdateView(APIView):
-    permission_classes = [IsAuthenticated]  # S'assurer que l'utilisateur est authentifié
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
-        """ Récupère l'agent à partir de l'ID (pk) """
+        """Récupère l'agent à partir de l'ID (pk)."""
         try:
             return Agent.objects.get(pk=pk)
         except Agent.DoesNotExist:
             return None
 
     def patch(self, request, pk, *args, **kwargs):
-        """ Met à jour partiellement un agent """
+        """Met à jour partiellement un agent."""
         instance = self.get_object(pk)
         if not instance:
             return Response({"detail": "Agent not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        # Vérifiez si l'utilisateur authentifié est bien le propriétaire de l'agent
-        if request.user != instance:  # Comparer l'utilisateur authentifié avec l'instance de l'agent
-            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         # Sérialisation et validation des données envoyées pour la mise à jour partielle
         serializer = AgentSerializers(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            # Sauvegarder l'agent mis à jour
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         # Si la validation échoue, retourner les erreurs
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -100,8 +99,8 @@ class AgentDeleteView(APIView):
             return Response({"detail": "Agent not found."}, status=status.HTTP_404_NOT_FOUND)
         
         # Vérifiez si l'utilisateur authentifié est bien le propriétaire de l'agent
-        if request.user != instance:  # Comparer l'utilisateur authentifié avec l'instance de l'agent
-            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+       # if request.user != instance:  # Comparer l'utilisateur authentifié avec l'instance de l'agent
+           # return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         # Supprimer l'agent
         instance.delete()
