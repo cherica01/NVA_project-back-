@@ -1,1 +1,6 @@
 env/
+# Ignorer les fichiers .pyc
+*.pyc
+
+# Ignorer les migrations
+back/NVA_project/management/migrations/

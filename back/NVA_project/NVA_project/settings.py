@@ -26,9 +26,12 @@ SECRET_KEY = 'django-insecure-9&7e@gh+l=-o09cztatxg!(s!dohvkio_0sz!twu7zi7kz_n_$
 DEBUG = True
 MEDIA_URL = '/media/'  # URL pour accéder aux fichiers
 MEDIA_ROOT = BASE_DIR / 'media/'  # Chemin absolu où les fichiers seront stockés
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Domaine du front React
+]
 
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ "localhost",
+                 "127.0.0.1"]
 
 AUTH_USER_MODEL = 'accounts.Agent'  # Remplacez 'accounts' par le nom de votre application
 
@@ -56,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'NVA_project.urls'
