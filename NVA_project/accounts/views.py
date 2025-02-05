@@ -9,6 +9,8 @@ from rest_framework import status
 from .models import Agent
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
+import random
+import string
 class AgentListView(APIView):
     permission_classes = [IsAuthenticated]  # Restreindre l'accès aux utilisateurs authentifiés
 
@@ -16,20 +18,65 @@ class AgentListView(APIView):
         agents = Agent.objects.filter(is_superuser=False)  # Récupère tous les agents
         serializer = AgentSerializers(agents, many=True)  # Sérialise la liste des agents
         return Response(serializer.data, status=status.HTTP_200_OK)  # Renvoie les données sérialisées
+
+
+class RegeneratePasswordView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, agent_id):
+        try:
+            agent = Agent.objects.get(id=agent_id)
+            new_password = generate_password()
+            agent.set_password(new_password)
+            agent.save()
+
+            return Response({"password": new_password}, status=status.HTTP_200_OK)
+        except Agent.DoesNotExist:
+            return Response({"error": "Agent non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+def generate_password():
+    """
+    Génère un mot de passe de 8 caractères contenant :
+    - Au moins une lettre majuscule
+    - Au moins une lettre minuscule
+    - Un chiffre
+    - Les autres caractères étant des lettres aléatoires
+    """
+    # Assurez-vous qu'il y a au moins une lettre majuscule, une lettre minuscule et un chiffre
+    uppercase = random.choice(string.ascii_uppercase)  # Une lettre majuscule
+    lowercase = random.choice(string.ascii_lowercase)  # Une lettre minuscule
+    digit = random.choice(string.digits)              # Un chiffre
+
+    # Complétez avec des lettres aléatoires pour atteindre 8 caractères
+    remaining = random.choices(string.ascii_letters, k=5)  # Lettres majuscules ou minuscules
+
+    # Mélangez les caractères pour éviter un ordre prévisible
+    password_list = list(uppercase + lowercase + digit + ''.join(remaining))
+    random.shuffle(password_list)
+
+    # Retournez le mot de passe final sous forme de chaîne
+    return ''.join(password_list)
+
 class AddAgentView(APIView):
-    permission_classes = [IsAdminUser]  # Assurez-vous que l'utilisateur est authentifié
+    permission_classes = [IsAdminUser]  # Accessible uniquement aux administrateurs
 
     def post(self, request):
-        # Vérifiez si l'utilisateur est un super utilisateur
-        
+        # Copiez les données de la requête pour les modifier
+        data = request.data.copy()
 
-        serializer = AgentSerializers(data=request.data)
+        # Générez un mot de passe conforme aux critères
+        data['password'] = generate_password()
+
+        # Sérialisez les données
+        serializer = AgentSerializers(data=data)
         if serializer.is_valid():
+            # Enregistrez l'agent et générez une réponse
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response_data = serializer.data
+            response_data['password'] = data['password']  # Incluez le mot de passe dans la réponse
+            return Response(response_data, status=status.HTTP_201_CREATED)
 
+        # En cas d'erreur, retournez les erreurs de validation
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class AgentLoginView(APIView):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')

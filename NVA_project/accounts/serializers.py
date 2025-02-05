@@ -2,15 +2,15 @@ from rest_framework import serializers
 from .models import Agent 
 
 
-
 class AgentSerializers(serializers.ModelSerializer):
     class Meta:
         model = Agent
-        fields = ['id','username','password','age','gender','location','phone_number','measurements']
-        extra_kwargs = {'password':{'write_only':True}}
-    def create(self, validate_data):
-        password = validate_data.pop('password')
-        agent = Agent(**validate_data)
-        agent.set_password(password)
+        fields = ['id', 'username', 'age', 'gender', 'location', 'phone_number', 'measurements','date_joined']
+        read_only_fields = ['date_joined']
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)  # Gère les cas où `password` est absent
+        agent = Agent(**validated_data)
+        if password:  # Si un mot de passe est fourni ou généré
+            agent.set_password(password)
         agent.save()
-        return agent 
+        return agent

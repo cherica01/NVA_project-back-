@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AgentListView ,AddAgentView,AgentLoginView,AgentUpdateView,AgentDeleteView,UserProfileView
+from .views import AgentListView ,AddAgentView,AgentLoginView,AgentUpdateView,AgentDeleteView,UserProfileView,RegeneratePasswordView
 
 urlpatterns = [
     path('agents/', AgentListView.as_view(), name='agent-list'),
@@ -8,4 +8,6 @@ urlpatterns = [
     path('<int:pk>/update/', AgentUpdateView.as_view(), name='agent-update'),
     path('<int:pk>/delete/', AgentDeleteView.as_view(), name='agent-delete'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+    path('regenerate-password/<int:agent_id>/', RegeneratePasswordView.as_view(), name='regenerate-password'),
+
 ]
