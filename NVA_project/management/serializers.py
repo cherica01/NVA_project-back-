@@ -24,12 +24,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = ['agent', 'work_days', 'amount', 'total_payment', 'payment_date']
 
-
 class EventSerializer(serializers.ModelSerializer):
-    agents = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Agent.objects.all()
-    )
+    agents = serializers.PrimaryKeyRelatedField(many=True, queryset=Agent.objects.all())
+    start_date = serializers.DateTimeField(input_formats=["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%d"])
+    end_date = serializers.DateTimeField(input_formats=["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%d"])
 
     class Meta:
         model = Event
@@ -42,10 +40,10 @@ class EventSerializer(serializers.ModelSerializer):
         
         # Validation de la disponibilité des agents
         event = self.instance or Event(
-            start_date=data.get('start_date', self.instance.start_date if self.instance else None),
-            end_date=data.get('end_date', self.instance.end_date if self.instance else None)
-        
+            start_date=data.get('start_date'),
+            end_date=data.get('end_date')
         )
+        
         unavailable_agents = []
         for agent in data['agents']:
             if not event.is_agent_available(agent):

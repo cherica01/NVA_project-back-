@@ -3,6 +3,7 @@ from .views import SendNotificationView ,DeleteNotificationView , AgentNotificat
 from .views import CreateEventView
 from .views import UpdateEventView
 from .views import DeleteEventView , ListEventsView
+from .views import AvailableAgentsView
 urlpatterns = [
     path('send-notification/', SendNotificationView.as_view(), name='send-notification'),
     path('delete-notification/<int:pk>/', DeleteNotificationView.as_view(), name='delete-notification'),
@@ -15,6 +16,7 @@ urlpatterns = [
     path('events/<int:pk>/update/', UpdateEventView.as_view(), name='update-event'),
     path('events/<int:pk>/delete/', DeleteEventView.as_view(), name='delete_event'),
     path('events/', ListEventsView.as_view(), name='list_events'),
+     path('event/available-agents/', AvailableAgentsView.as_view(), name='available-agents'),
 ]
 
 

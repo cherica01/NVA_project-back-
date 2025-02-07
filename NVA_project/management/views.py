@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Notification
+
+from dateutil.parser import parse as parse_date
 from accounts.models import Agent
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
@@ -17,6 +19,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.serializers import AgentSerializers
+from datetime import datetime
 #POST
 class SendNotificationView(APIView):
     permission_classes = [IsAuthenticated]
@@ -200,12 +204,167 @@ class PaymentHistoryView(APIView):
         )
 #gestion event 
 
+
+class AvailableAgentsView(APIView):
+    def get(self, request, *args, **kwargs):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        print(f"🔍 Requête reçue avec : start_date={start_date}, end_date={end_date}")
+
+        # Vérifier que les paramètres existent
+        if not start_date or not end_date:
+            print("❌ Erreur : start_date ou end_date manquant !")
+            return Response({"error": "Les paramètres start_date et end_date sont requis."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérifier le format des dates
+        try:
+            start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00')).date()
+            end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00')).date()
+            print(f"✅ Dates converties : start_date={start_date}, end_date={end_date}")
+        except ValueError:
+            print("❌ Erreur : Format de date incorrect !")
+            return Response({"error": "Le format des dates doit être YYYY-MM-DD."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérification des agents disponibles
+        available_agents = []
+        agents = Agent.objects.all()
+        print(f"📋 Nombre total d'agents en base : {len(agents)}")
+
+        for agent in agents:
+            conflicting_events = agent.events.filter(start_date__lte=end_date, end_date__gte=start_date)
+            if conflicting_events.exists():
+                print(f"⚠ Agent {agent.username} indisponible pour cette période")
+            else:
+                print(f"✅ Agent {agent.username} disponible")
+                available_agents.append(agent)
+
+        if not available_agents:
+            print("⚠ Aucun agent disponible pour cette période !")
+
+        # Sérialisation des agents disponibles
+        serializer = AgentSerializers(available_agents, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        print(f"start_date: {start_date}, end_date: {end_date}")
+
+        if not start_date or not end_date:
+            return Response({"error": "Les paramètres start_date et end_date sont requis."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            start_date = parse_date(start_date).date()
+            end_date = parse_date(end_date).date()
+        except ValueError:
+            return Response({"error": "Le format des dates doit être YYYY-MM-DD."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupération des agents et vérification de leur disponibilité
+        available_agents = []
+        agents = Agent.objects.all()
+
+        for agent in agents:
+            conflicting_events = agent.events.filter(start_date__lte=end_date, end_date__gte=start_date)
+            if not conflicting_events.exists():
+                available_agents.append(agent)
+
+        # Sérialisation des agents disponibles
+        serializer = AgentSerializers(available_agents, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if not start_date or not end_date:
+            return Response({"error": "Les paramètres start_date et end_date sont requis."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00')).date()
+            end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00')).date()
+        except ValueError:
+            return Response({"error": "Le format des dates doit être YYYY-MM-DD."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupération des agents et vérification de leur disponibilité
+        available_agents = []
+        agents = Agent.objects.all()
+
+        for agent in agents:
+            conflicting_events = agent.events.filter(start_date__lte=end_date, end_date__gte=start_date)
+            if not conflicting_events.exists():
+                available_agents.append(agent)
+
+        # Sérialisation des agents disponibles
+        serializer = AgentSerializers(available_agents, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if not start_date or not end_date:
+            return Response({"error": "Les paramètres start_date et end_date sont requis."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Le format des dates doit être YYYY-MM-DD."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupération des agents et vérification de leur disponibilité
+        available_agents = []
+        agents = Agent.objects.all()
+
+        for agent in agents:
+            conflicting_events = agent.events.filter(start_date__lte=end_date, end_date__gte=start_date)
+            if not conflicting_events.exists():
+                available_agents.append(agent)
+
+        # Sérialisation des agents disponibles
+        serializer = AgentSerializers(available_agents, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 #(post)
 
 class CreateEventView(APIView):
-    permission_classes = [IsAdminUser]
+    #permission_classes = [IsAdminUser]
 
     def post(self, request):
+        print("📥 Données reçues du frontend :", request.data)  # Debug log
+        
+        serializer = EventSerializer(data=request.data)
+
+        if serializer.is_valid():
+            event = serializer.save()
+            agents_usernames = [agent.username for agent in event.agents.all()]
+            
+            print("✅ Événement créé avec succès :", event)  # Debug log
+            
+            return Response({
+                "message": "Event created successfully!",
+                "event": {
+                    "location": event.location,
+                    "company_name": event.company_name,
+                    "event_code": event.event_code,
+                    "start_date": event.start_date,
+                    "end_date": event.end_date,
+                    "agents": agents_usernames
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        print("❌ Erreur de validation complète :", serializer.errors)  # Afficher les erreurs détaillées
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
             event = serializer.save()

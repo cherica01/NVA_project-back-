@@ -93,7 +93,7 @@ class AgentLoginView(APIView):
             # Sérialiser les informations de base de l'agent
             agent = Agent.objects.get(username=username)
             serializer = AgentSerializers(agent)
-
+            print("Réponse envoyée:", serializer.data)
             # Retourner les informations de base et les tokens
             return Response({
                 'user': serializer.data,
