@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'api' , 
     'accounts',
     'event',
+    'payment',
     'rest_framework',
     'rest_framework.authtoken',
 ]
