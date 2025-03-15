@@ -11,5 +11,6 @@ urlpatterns = [
     
     # Nouvelles URLs pour chaque application
     path('event/', include('event.urls')),
+    path('payment/', include('payment.urls')),
    
 ]
