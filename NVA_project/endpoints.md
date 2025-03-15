@@ -96,3 +96,5 @@
 
 *tri ordre de resultat
 `/events/?ordering=start_date`
+*agent valable
+`/event/available-agents/'
