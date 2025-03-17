@@ -49,6 +49,10 @@ INSTALLED_APPS = [
     'event',
     'payment',
     'presence',
+    'notification' ,
+    'messaging',
+    'dashboard',
+    'agenda',
     'rest_framework',
     'rest_framework.authtoken',
 ]
