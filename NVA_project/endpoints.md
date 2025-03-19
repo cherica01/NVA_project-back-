@@ -1,5 +1,5 @@
 # EndPoint
-## GESTION AGENT 
+## AUTHENTIFICATION
 
 * (POST) login
 
@@ -10,13 +10,28 @@
     * "username":"riantsoa",
     * "password":"cherica"
 }
+## GESTION DES AGENTS
 *(GET) lister tout les agents 
  `/api/accounts/agents/`
+Reponses : 
+[
+  {
+    "id": 1,
+    "username": "agent1",
+    "age": "25",
+    "gender": "Male",
+    "location": "Paris",
+    "phone_number": "0123456789",
+    "measurements": "180cm / 75kg",
+    "date_joined": "2023-01-01T00:00:00Z"
+  }
+]
+
  *(POST) Ajouter Agent
 
  `/api/accounts/add-agent/`
  
- * forme de donnee
+ * Donnee requise
  {
     "username":"test1",
     "password":"cherica",
@@ -41,7 +56,7 @@
 
 `/api/management/send-notification/`
 
-* forme de donnee 
+* Donee requise
 {
   "message": "Reminder: Your shift starts at 9 AM tomorrow.",
   "date": "2024-12-20",  
