@@ -90,8 +90,8 @@ class AvailableAgentsView(APIView):
         available_agents = Agent.objects.exclude(id__in=busy_agents.values_list('id', flat=True))
         
         # Utiliser le sérialiseur d'agent pour renvoyer les données
-        from accounts.serializers import AgentSerializer
-        serializer = AgentSerializer(available_agents, many=True)
+        from accounts.serializers import AgentSerializers
+        serializer = AgentSerializers(available_agents, many=True)
         return Response(serializer.data)
 
 class AgentEventsView(APIView):
