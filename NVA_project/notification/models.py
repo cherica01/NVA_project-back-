@@ -5,7 +5,9 @@ from django.db import models
 from accounts.models import Agent
 
 class Notification(models.Model):
+    is_global = models.BooleanField(default=False)  # <
     recipient = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255, default="Notification")
     message = models.TextField()
     date = models.DateField()
     is_read = models.BooleanField(default=False)
