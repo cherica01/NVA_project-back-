@@ -12,5 +12,9 @@ urlpatterns = [
     # Nouvelles URLs pour chaque application
     path('event/', include('event.urls')),
     path('payment/', include('payment.urls')),
+    path('notification/', include('notification.urls')),
+    path('messaging/',include('messaging.urls')),
+    path('dashboard/', include('dashboard.urls')),
+    path('agenda/', include('agenda.urls')),
    
 ]
