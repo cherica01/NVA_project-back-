@@ -5,11 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from accounts.models import Agent
-from .models import Conversation, Message, MessageAttachment
+from .models import Conversation, Message
 from .serializers import (
     ConversationSerializer, ConversationCreateSerializer,
     MessageSerializer, MessageCreateSerializer,
-    MessageAttachmentCreateSerializer
+    AgentSerializer
 )
 
 class ConversationListView(APIView):
@@ -49,19 +49,6 @@ class ConversationDetailView(APIView):
         conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
         serializer = ConversationSerializer(conversation, context={'request': request})
         return Response(serializer.data)
-    
-    def delete(self, request, pk):
-        """
-        Supprime une conversation.
-        """
-        conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
-        conversation.participants.remove(request.user)
-        
-        # Si plus aucun participant, supprimer la conversation
-        if conversation.participants.count() == 0:
-            conversation.delete()
-        
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MessageListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -125,25 +112,6 @@ class MessageDetailView(APIView):
         message.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class MessageAttachmentView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def post(self, request, message_id):
-        """
-        Ajoute une pièce jointe à un message.
-        """
-        serializer = MessageAttachmentCreateSerializer(
-            data=request.data,
-            context={'request': request, 'message_id': message_id}
-        )
-        if serializer.is_valid():
-            attachment = serializer.save()
-            return Response(
-                {'id': attachment.id, 'file': attachment.file.url, 'file_name': attachment.file_name},
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class UnreadMessagesCountView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -176,3 +144,47 @@ class SearchConversationsView(APIView):
         
         serializer = ConversationSerializer(conversations, many=True, context={'request': request})
         return Response(serializer.data)
+
+class CurrentUserView(APIView):
+    """
+    Vue pour récupérer les informations de l'utilisateur actuellement connecté
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        serializer = AgentSerializer(request.user)
+        return Response(serializer.data)
+
+class UsersListView(APIView):
+    """
+    Vue pour récupérer la liste de tous les utilisateurs
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        users = Agent.objects.all()
+        serializer = AgentSerializer(users, many=True)
+        return Response(serializer.data)
+
+class AgentsListView(APIView):
+    """
+    Vue pour récupérer la liste de tous les agents
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        agents = Agent.objects.filter(is_agent=True)
+        serializer = AgentSerializer(agents, many=True)
+        return Response(serializer.data)
+
+class AdminsListView(APIView):
+    """
+    Vue pour récupérer la liste de tous les administrateurs
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        admins = Agent.objects.filter(is_staff=True)
+        serializer = AgentSerializer(admins, many=True)
+        return Response(serializer.data)
+
