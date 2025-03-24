@@ -9,5 +9,6 @@ urlpatterns = [
     path('<int:pk>/delete/', AgentDeleteView.as_view(), name='agent-delete'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('regenerate-password/<int:agent_id>/', RegeneratePasswordView.as_view(), name='regenerate-password'),
+    
 
 ]
