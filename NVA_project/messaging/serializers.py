@@ -1,24 +1,22 @@
 from rest_framework import serializers
 from accounts.models import Agent
-from .models import Conversation, Message, MessageAttachment
+from .models import Conversation, Message
 
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
-class MessageAttachmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MessageAttachment
-        fields = ['id', 'file', 'file_name', 'file_type', 'uploaded_at']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_agent']
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = AgentSerializer(read_only=True)
-    attachments = MessageAttachmentSerializer(many=True, read_only=True)
+    sender_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'content', 'created_at', 'is_read', 'attachments']
+        fields = ['id', 'sender', 'sender_name', 'content', 'created_at', 'is_read']
+    
+    def get_sender_name(self, obj):
+        return obj.sender.username
 
 class ConversationSerializer(serializers.ModelSerializer):
     participants = AgentSerializer(many=True, read_only=True)
@@ -103,28 +101,3 @@ class MessageCreateSerializer(serializers.Serializer):
         
         return message
 
-class MessageAttachmentCreateSerializer(serializers.Serializer):
-    file = serializers.FileField()
-    
-    def create(self, validated_data):
-        message_id = self.context.get('message_id')
-        
-        try:
-            message = Message.objects.get(id=message_id)
-        except Message.DoesNotExist:
-            raise serializers.ValidationError("Le message n'existe pas.")
-        
-        # Vérifier que l'utilisateur est l'expéditeur du message
-        if self.context.get('request').user != message.sender:
-            raise serializers.ValidationError("Vous n'êtes pas l'expéditeur de ce message.")
-        
-        file = validated_data.get('file')
-        
-        attachment = MessageAttachment.objects.create(
-            message=message,
-            file=file,
-            file_name=file.name,
-            file_type=file.content_type
-        )
-        
-        return attachment
