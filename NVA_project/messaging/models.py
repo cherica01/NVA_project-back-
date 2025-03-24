@@ -1,5 +1,4 @@
 from django.db import models
-from django.conf import settings
 from accounts.models import Agent
 
 class Conversation(models.Model):
@@ -26,12 +25,3 @@ class Message(models.Model):
     class Meta:
         ordering = ['created_at']
 
-class MessageAttachment(models.Model):
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='message_attachments/')
-    file_name = models.CharField(max_length=255)
-    file_type = models.CharField(max_length=100)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"Pièce jointe {self.file_name} pour {self.message}"
