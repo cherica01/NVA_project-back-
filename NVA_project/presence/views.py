@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.db.models import Q
 from .models import Presence, PresencePhoto
 from .serializers import (
     PresenceSerializer, PresenceDetailSerializer, PresenceCreateSerializer, 
@@ -83,27 +84,29 @@ class UpdatePresenceStatusView(APIView):
             return Response(PresenceSerializer(presence).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+from django.db.models import Q
+
 class PresenceDashboardView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """
         Récupère des statistiques sur les présences.
         """
-        # Statistiques sur les présences
+        # Statistiques sur les présences globales
         total_presences = Presence.objects.count()
         approved_presences = Presence.objects.filter(status='approved').count()
         rejected_presences = Presence.objects.filter(status='rejected').count()
         pending_presences = Presence.objects.filter(status='pending').count()
-        
+
         # Statistiques par agent
         agent_stats = Presence.objects.values('agent__username').annotate(
             total=Count('id'),
-            approved=Count('id', filter={'status': 'approved'}),
-            rejected=Count('id', filter={'status': 'rejected'}),
-            pending=Count('id', filter={'status': 'pending'})
+            approved=Count('id', filter=Q(status='approved')),
+            rejected=Count('id', filter=Q(status='rejected')),
+            pending=Count('id', filter=Q(status='pending'))
         )
-        
+
         return Response({
             'total_presences': total_presences,
             'approved_presences': approved_presences,
