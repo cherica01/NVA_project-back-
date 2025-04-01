@@ -5,7 +5,7 @@ from .models import Conversation, Message
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_agent']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', ]
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = AgentSerializer(read_only=True)
