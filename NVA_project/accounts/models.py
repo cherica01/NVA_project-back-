@@ -4,14 +4,20 @@ from django.core.exceptions import ValidationError
 
 
 def validate_image(image):
-    """
-    Valide la taille maximale d'une image.
-    Limite fixée à 5 Mo pour cet exemple.
-    """
-    file_size = image.file.size
-    limit_mb = 5  # Limite en mégaoctets
+    # Vérifier si l'image est None
+    if not image:
+        return
+        
+    # Vérifier la taille du fichier - limiter à 5MB
+    # Pour un BytesIO, utilisez len() au lieu de .size
+    if hasattr(image.file, 'size'):
+        file_size = image.file.size
+    else:
+        file_size = len(image.file.getvalue())
+        
+    limit_mb = 5
     if file_size > limit_mb * 1024 * 1024:
-        raise ValidationError(f"La taille maximale d'une image est de {limit_mb} Mo.")
+        raise ValidationError(f"La taille maximale de l'image est de {limit_mb}MB")
 
 
 class Agent(AbstractUser):
@@ -42,19 +48,25 @@ class Agent(AbstractUser):
 
 
 class Photo(models.Model):
-    """
-    Modèle pour gérer les photos associées à un agent.
-    """
-    agent = models.ForeignKey(
-        Agent,
-        related_name='photos',
-        on_delete=models.CASCADE
+    PHOTO_TYPES = (
+        ('profile', 'Photo de profil'),
+        ('cover', 'Photo de couverture'),
+        ('animation', 'Photo d\'animation'),
     )
-    image = models.ImageField(
-        upload_to='photos/',
-        validators=[validate_image]  # Valide la taille des images
-    )
+    
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='agent_photos/', validators=[validate_image])
+    photo_type = models.CharField(max_length=20, choices=PHOTO_TYPES, default='profile')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
-        return f"Photo for {self.agent.username}"
+        return f"{self.get_photo_type_display()} de {self.agent.username} ({self.id})"
+    
+    def save(self, *args, **kwargs):
+        # Vérifier s'il existe déjà une photo du même type pour cet agent
+        if not self.pk:  # Seulement pour les nouvelles photos
+            existing_photo = Photo.objects.filter(agent=self.agent, photo_type=self.photo_type).first()
+            if existing_photo:
+                # Supprimer l'ancienne photo du même type
+                existing_photo.delete()
+        super().save(*args, **kwargs)
