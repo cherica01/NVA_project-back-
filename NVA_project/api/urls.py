@@ -16,5 +16,6 @@ urlpatterns = [
     path('messaging/',include('messaging.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('agenda/', include('agenda.urls')),
+    path('presence/', include('presence.urls')),
    
 ]
