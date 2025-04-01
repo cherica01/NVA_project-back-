@@ -10,7 +10,8 @@ from .views import (
     CurrentUserView,
     UsersListView,
     AgentsListView,
-    AdminsListView
+    AdminsListView,
+    ChatbotView 
 )
 
 urlpatterns = [
@@ -34,5 +35,6 @@ urlpatterns = [
     path('users/', UsersListView.as_view(), name='users-list'),
     path('agents/', AgentsListView.as_view(), name='agents-list'),
     path('admins/', AdminsListView.as_view(), name='admins-list'),
+    path('chatbot/', ChatbotView.as_view(), name='chatbot'),
 ]
 
