@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
-
+import os 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,11 +24,17 @@ SECRET_KEY = 'django-insecure-9&7e@gh+l=-o09cztatxg!(s!dohvkio_0sz!twu7zi7kz_n_$
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-MEDIA_URL = '/media/'  # URL pour accéder aux fichiers
-MEDIA_ROOT = BASE_DIR / 'media/'  # Chemin absolu où les fichiers seront stockés
+# Configuration des médias
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuration des fichiers statiques
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Domaine du front React
 ]
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDHjOrj5AeGEOBJpI5sBbc0t8dqJ0fA_Sk')
 
 ALLOWED_HOSTS = [ "localhost",
                  "127.0.0.1"]
