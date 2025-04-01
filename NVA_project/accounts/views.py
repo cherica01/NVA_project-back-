@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import AgentSerializers
+from .serializers import AgentSerializers, AgentProfileSerializer, PhotoSerializer
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
@@ -11,6 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 import random
 import string
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from .models import Agent, Photo
 class AgentListView(APIView):
     permission_classes = [IsAuthenticated]  # Restreindre l'accès aux utilisateurs authentifiés
 
@@ -161,3 +164,76 @@ class UserProfileView(APIView):
         agent = request.user
         serializer = AgentSerializers(agent)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]  # Limite l'accès aux utilisateurs connectés
+
+    def get(self, request):
+        # Utilise l'utilisateur connecté (request.user)
+        agent = request.user
+        serializer = AgentProfileSerializer(agent, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request):
+        """Met à jour le profil de l'utilisateur connecté."""
+        agent = request.user
+        serializer = AgentProfileSerializer(agent, data=request.data, partial=True, context={'request': request})
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AgentPhotoUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def post(self, request):
+        """Ajoute une nouvelle photo au profil de l'agent."""
+        # Récupérer le type de photo (profile, cover, animation)
+        photo_type = request.data.get('photo_type', 'profile')
+        
+        # Vérifier que le type est valide
+        if photo_type not in ['profile', 'cover', 'animation']:
+            return Response(
+                {"detail": "Type de photo invalide. Utilisez 'profile', 'cover' ou 'animation'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Créer les données pour le sérialiseur
+        photo_data = {
+            'image': request.data.get('image'),
+            'photo_type': photo_type
+        }
+        
+        serializer = PhotoSerializer(data=photo_data, context={'request': request})
+        if serializer.is_valid():
+            # Vérifier s'il existe déjà une photo du même type
+            existing_photo = Photo.objects.filter(agent=request.user, photo_type=photo_type).first()
+            
+            # Si une photo du même type existe déjà, la supprimer
+            if existing_photo:
+                existing_photo.delete()
+            
+            # Associer la photo à l'agent connecté
+            photo = serializer.save(agent=request.user)
+            return Response(
+                PhotoSerializer(photo, context={'request': request}).data, 
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AgentPhotoDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, photo_id):
+        """Supprime une photo du profil de l'agent."""
+        try:
+            # Vérifier que la photo appartient bien à l'agent connecté
+            photo = Photo.objects.get(id=photo_id, agent=request.user)
+            photo.delete()
+            return Response({"detail": "Photo supprimée avec succès."}, status=status.HTTP_204_NO_CONTENT)
+        except Photo.DoesNotExist:
+            return Response({"detail": "Photo non trouvée ou vous n'avez pas les droits pour la supprimer."}, 
+                           status=status.HTTP_404_NOT_FOUND)
+
