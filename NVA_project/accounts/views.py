@@ -189,7 +189,7 @@ class AgentPhotoUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request):
-        """Ajoute une nouvelle photo au profil de l'agent."""
+        """Ajoute une nouvelle photo au profil de l'agent et met à jour les champs correspondants."""
         # Récupérer le type de photo (profile, cover, animation)
         photo_type = request.data.get('photo_type', 'profile')
         
@@ -217,8 +217,20 @@ class AgentPhotoUploadView(APIView):
             
             # Associer la photo à l'agent connecté
             photo = serializer.save(agent=request.user)
+            
+            # Mettre à jour le champ correspondant dans l'objet Agent
+            agent = request.user
+            if photo_type == 'profile':
+                agent.profile_photo = photo
+            elif photo_type == 'cover':
+                agent.cover_photo = photo
+            elif photo_type == 'animation':
+                agent.animation_photo = photo
+            agent.save()
+            
+            # Retourner le profil mis à jour
             return Response(
-                PhotoSerializer(photo, context={'request': request}).data, 
+                AgentProfileSerializer(agent, context={'request': request}).data, 
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -231,9 +243,18 @@ class AgentPhotoDeleteView(APIView):
         try:
             # Vérifier que la photo appartient bien à l'agent connecté
             photo = Photo.objects.get(id=photo_id, agent=request.user)
+            
+            # Supprimer la photo
             photo.delete()
-            return Response({"detail": "Photo supprimée avec succès."}, status=status.HTTP_204_NO_CONTENT)
+            
+            # Retourner le profil mis à jour
+            agent = request.user
+            return Response(
+                AgentProfileSerializer(agent, context={'request': request}).data,
+                status=status.HTTP_200_OK
+            )
         except Photo.DoesNotExist:
-            return Response({"detail": "Photo non trouvée ou vous n'avez pas les droits pour la supprimer."}, 
-                           status=status.HTTP_404_NOT_FOUND)
-
+            return Response(
+                {"detail": "Photo non trouvée ou vous n'avez pas les droits pour la supprimer."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
