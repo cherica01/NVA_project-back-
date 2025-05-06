@@ -85,27 +85,52 @@ class UpdatePresenceStatusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.db.models import Q
-
+import datetime
+import calendar
+from django.utils import timezone
 class PresenceDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """
-        Récupère des statistiques sur les présences.
+        Récupère des statistiques sur les présences pour le mois spécifié.
         """
+        month_str = request.query_params.get('month', None)
+        
+        # Déterminer la plage de dates
+        if month_str:
+            try:
+                year, month = map(int, month_str.split('-'))
+                month_date = datetime.date(year, month, 1)
+                _, days_in_month = calendar.monthrange(year, month)
+                month_end = datetime.date(year, month, days_in_month)
+                print(f"Date range: {month_date} to {month_end}")
+            except (ValueError, TypeError):
+                return Response({"error": "Format de mois invalide. Utilisez YYYY-MM"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            today = timezone.now().date()
+            month_date = datetime.date(today.year, today.month, 1)
+            _, days_in_month = calendar.monthrange(today.year, today.month)
+            month_end = datetime.date(today.year, today.month, days_in_month)
+        
+        # Filtrer les présences pour le mois donné
+        query = Q(timestamp__date__gte=month_date, timestamp__date__lte=month_end)
+        
         # Statistiques sur les présences globales
-        total_presences = Presence.objects.count()
-        approved_presences = Presence.objects.filter(status='approved').count()
-        rejected_presences = Presence.objects.filter(status='rejected').count()
-        pending_presences = Presence.objects.filter(status='pending').count()
+        total_presences = Presence.objects.filter(query).count()
+        approved_presences = Presence.objects.filter(query & Q(status='approved')).count()
+        rejected_presences = Presence.objects.filter(query & Q(status='rejected')).count()
+        pending_presences = Presence.objects.filter(query & Q(status='pending')).count()
 
         # Statistiques par agent
-        agent_stats = Presence.objects.values('agent__username').annotate(
+        agent_stats = Presence.objects.filter(query).values('agent__username').annotate(
             total=Count('id'),
             approved=Count('id', filter=Q(status='approved')),
             rejected=Count('id', filter=Q(status='rejected')),
             pending=Count('id', filter=Q(status='pending'))
         )
+
+        print("Agent stats:", agent_stats)
 
         return Response({
             'total_presences': total_presences,
@@ -114,6 +139,7 @@ class PresenceDashboardView(APIView):
             'pending_presences': pending_presences,
             'agent_stats': agent_stats
         })
+
 
 class AgentPresencesView(APIView):
     permission_classes = [IsAuthenticated]
