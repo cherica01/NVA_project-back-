@@ -34,7 +34,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Domaine du front React
 ]
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDHjOrj5AeGEOBJpI5sBbc0t8dqJ0fA_Sk')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBKH3d36RMbBXQ97ul8OAW_YG-VaPr7c-0 ')
 
 ALLOWED_HOSTS = [ "localhost",
                  "127.0.0.1"]
@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'messaging',
     'dashboard',
     'agenda',
+    'evaluation',
     'rest_framework',
     'rest_framework.authtoken',
 ]
