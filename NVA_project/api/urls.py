@@ -17,5 +17,6 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('agenda/', include('agenda.urls')),
     path('presence/', include('presence.urls')),
+    path('evaluation/', include('evaluation.urls')),
    
 ]
