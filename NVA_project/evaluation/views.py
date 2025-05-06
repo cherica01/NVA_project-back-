@@ -335,7 +335,7 @@ def calculate_monthly_rankings(request):
         # Ceci est un algorithme de scoring simple - vous pouvez ajuster les poids selon vos besoins
         score = (
             (clients * 10) +           # 10 points par client
-            (products * 2) +           # 2 points par produit
+            (products * 4) +           # 2 points par produit
             (events_count * 5) +       # 5 points par événement
             (presence_rate * 0.5) +    # 0.5 point par pourcentage de présence
             (float(revenue) * 0.01)    # 0.01 point par euro de revenu
