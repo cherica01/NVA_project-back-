@@ -75,29 +75,31 @@ class AgentPerformanceSerializer(serializers.ModelSerializer):
     
     def get_presence_rate(self, obj):
         month = self.context.get('month')
-        
+    
         import calendar
         _, days_in_month = calendar.monthrange(month.year, month.month)
         month_end = datetime.date(month.year, month.month, days_in_month)
-        
+    
         from presence.models import Presence
+    # Compter uniquement les présences avec statut 'approved' ou 'rejected'
         total_days = Presence.objects.filter(
             agent=obj,
             timestamp__date__gte=month,
-            timestamp__date__lte=month_end
+            timestamp__date__lte=month_end,
+            status__in=['approved', 'rejected']
         ).count()
-        
+    
         if total_days == 0:
             return 0
-        
+    
         present_days = Presence.objects.filter(
             agent=obj,
             timestamp__date__gte=month,
             timestamp__date__lte=month_end,
             status='approved'
         ).count()
-        
-        return round((present_days / total_days) * 100, 2)
+    
+        return round((present_days / total_days) * 100, 2) if total_days > 0 else 0
     
     def get_revenue(self, obj):
         month = self.context.get('month')
