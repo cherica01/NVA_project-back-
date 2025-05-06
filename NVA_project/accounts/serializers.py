@@ -7,7 +7,7 @@ class PhotoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Photo
-        fields = ['id', 'image', 'uploaded_at', 'image_url']
+        fields = ['id', 'image', 'uploaded_at', 'image_url', 'photo_type']  # Ajouté photo_type pour débogage
         read_only_fields = ['uploaded_at']
     
     def get_image_url(self, obj):
@@ -16,6 +16,7 @@ class PhotoSerializer(serializers.ModelSerializer):
         if obj.image and request:
             return request.build_absolute_uri(obj.image.url)
         return None
+
 class AgentProfileSerializer(serializers.ModelSerializer):
     """Sérialiseur étendu pour le profil d'un agent, incluant ses photos."""
     photos = PhotoSerializer(many=True, read_only=True)
@@ -34,19 +35,25 @@ class AgentProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['date_joined', 'username', 'total_payments']
     
     def get_profile_photo(self, obj):
-        photo = obj.photos.filter(photo_type='profile').first()
+        # Trier les photos par uploaded_at en ordre décroissant
+        photo = obj.photos.filter(photo_type='profile').order_by('-uploaded_at').first()
+        print(f"Profile photo pour {obj.username} : {photo}")  # Log pour débogage
         if photo:
             return PhotoSerializer(photo, context=self.context).data
         return None
     
     def get_cover_photo(self, obj):
-        photo = obj.photos.filter(photo_type='cover').first()
+        # Trier les photos par uploaded_at en ordre décroissant
+        photo = obj.photos.filter(photo_type='cover').order_by('-uploaded_at').first()
+        print(f"Cover photo pour {obj.username} : {photo}")  # Log pour débogage
         if photo:
             return PhotoSerializer(photo, context=self.context).data
         return None
     
     def get_animation_photo(self, obj):
-        photo = obj.photos.filter(photo_type='animation').first()
+        # Trier les photos par uploaded_at en ordre décroissant
+        photo = obj.photos.filter(photo_type='animation').order_by('-uploaded_at').first()
+        print(f"Animation photo pour {obj.username} : {photo}")  # Log pour débogage
         if photo:
             return PhotoSerializer(photo, context=self.context).data
         return None
@@ -64,4 +71,3 @@ class AgentSerializers(serializers.ModelSerializer):
             agent.set_password(password)
         agent.save()
         return agent
-
