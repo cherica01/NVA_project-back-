@@ -25,14 +25,14 @@ class AgentPerformanceSerializer(serializers.ModelSerializer):
     revenue = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
     photo_url = serializers.SerializerMethodField()
-    
+    satisfaction_score = serializers.SerializerMethodField()  # Ajout du champ
+
     class Meta:
         model = Agent
-        fields = ['id', 'username', 'first_name', 'last_name', 'photo_url', 'location', 
-                 'clients', 'products', 'events', 'presence_rate', 'revenue', 'score']
-    
+        fields = ['id', 'username', 'first_name', 'last_name', 'photo_url', 'location',
+                 'clients', 'products', 'events', 'presence_rate', 'revenue', 'score', 'satisfaction_score']  # Ajout de satisfaction_score
+
     def get_photo_url(self, obj):
-        # Récupérer la photo de profil si elle existe
         photo = obj.photos.filter(photo_type='profile').first()
         if photo and photo.image:
             request = self.context.get('request')
@@ -76,7 +76,6 @@ class AgentPerformanceSerializer(serializers.ModelSerializer):
     def get_presence_rate(self, obj):
         month = self.context.get('month')
         
-        # Calculer le nombre de jours dans le mois
         import calendar
         _, days_in_month = calendar.monthrange(month.year, month.month)
         month_end = datetime.date(month.year, month.month, days_in_month)
@@ -129,6 +128,31 @@ class AgentPerformanceSerializer(serializers.ModelSerializer):
         except MonthlyRanking.DoesNotExist:
             return 0
 
+    def get_satisfaction_score(self, obj):
+        month = self.context.get('month')
+        events = Event.objects.filter(
+            agents=obj,
+            start_date__year=month.year,
+            start_date__month=month.month
+        )
+        
+        total_satisfaction = 0
+        valid_events = 0
+        
+        for event in events:
+            try:
+                satisfaction = event.performance.client_satisfaction
+                if satisfaction > 0:  # Ignorer les scores non évalués (0)
+                    total_satisfaction += satisfaction
+                    valid_events += 1
+            except EventPerformance.DoesNotExist:
+                pass
+        
+        if valid_events == 0:
+            return 0
+        
+        # Calculer la moyenne et arrondir à 2 décimales
+        return round(total_satisfaction / valid_events, 2)
 class MonthlyRankingSerializer(serializers.ModelSerializer):
     agent_name = serializers.CharField(source='agent.username')
     photo_url = serializers.SerializerMethodField()
