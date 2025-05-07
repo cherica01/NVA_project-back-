@@ -196,9 +196,9 @@ class AdminsListView(APIView):
 import logging
 from .chatbot_utils import (
     format_event_for_display, get_upcoming_events, get_event_details, get_events_by_location, get_next_event,
-    get_agent_presence_stats, get_last_presence, get_payment_summary,
+    get_agent_presence_stats, get_last_presence, get_payment_summary, get_agent_presence_stats,
     get_agent_profile_data, extract_date_range, extract_location, extract_agent_id,
-    format_data_for_prompt, get_payment_summary, get_agent_presence_stats
+    format_data_for_prompt, get_payment_summary, get_agent_presence_stats, 
 )
 from .intent_detector import detect_intent
 
@@ -322,13 +322,13 @@ class ChatbotView(APIView):
                                 context_data['last_presence'] = f"{presence_stats['agent_name']} n'a pas encore enregistré de présence."
                     else:
                         # Admin demande un résumé des présences de tous les agents
-                        all_presence_stats = get_all_agents_presence_stats()
+                        all_presence_stats = get_agent_presence_stats(user)
                         context_data['all_presence_stats'] = "Statistiques de présence pour tous les agents:\n"
                         
                         for stats in all_presence_stats:
                             context_data['all_presence_stats'] += f"""
-                            - {stats['agent_name']}:
-                              Total: {stats['total']} | Approuvées: {stats['approved']} | En attente: {stats['pending']} | Rejetées: {stats['rejected']}
+                            - {stats.get('agent_name', 'Nom inconnu') if isinstance(stats, dict) else 'Nom inconnu'}:
+                              Total: {stats.get('total', 0) if isinstance(stats, dict) else 0} | Approuvées: {stats.get('approved', 0) if isinstance(stats, dict) else 0} | En attente: {stats.get('pending', 0) if isinstance(stats, dict) else 0} | Rejetées: {stats.get('rejected', 0) if isinstance(stats, dict) else 0}
                             """
                 else:
                     # Agent demande ses propres stats de présence
@@ -358,7 +358,7 @@ class ChatbotView(APIView):
             
             # Traitement spécifique pour les admins - liste des agents
             elif intent == 'agents' and is_admin:
-                agents_summary = get_all_agents_summary()
+                agents_summary = get_payment_summary()
                 context_data['agents_summary'] = format_data_for_prompt(agents_summary, 'agents_summary')
             
             # Traitement de l'aide
@@ -424,7 +424,7 @@ class ChatbotView(APIView):
             """
             
             # Appeler l'API Gemini
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.0-flash')
             
             response = model.generate_content([
                 system_prompt,
