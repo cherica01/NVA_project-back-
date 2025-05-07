@@ -919,7 +919,7 @@ def format_data_for_prompt(data, data_type):
                  f"Événements à venir: {data['event_stats']['future_events']}\n" \
                  f"Présences totales: {data['presence_stats']['total']}\n" \
                  f"Présences approuvées: {data['presence_stats']['approved']}\n" \
-                 f"Paiements totaux: {data['payment_summary']['total_amount']} €\n"
+                 f"Paiements totaux: {data['payment_summary']['total_amount']} ARIARY\n"
         
         # Ajouter les disponibilités
         result += "===== Disponibilités =====\n"
@@ -959,12 +959,12 @@ def format_data_for_prompt(data, data_type):
                    f"Erreur: {data['error']}\n" \
                    f"Note: {data.get('note', 'Contactez l\'administrateur pour plus de détails')}"
         result = f"===== Informations de paiement pour {data.get('agent_name', 'l\'agent')} =====\n" \
-                 f"Total des paiements: {data.get('total_amount', 0)} €\n" \
-                 f"Dernier paiement: {data.get('last_payment', {}).get('amount', 0)} € le {data.get('last_payment', {}).get('date', 'N/A')}\n" \
+                 f"Total des paiements: {data.get('total_amount', 0)} ARIARY\n" \
+                 f"Dernier paiement: {data.get('last_payment', {}).get('amount', 0)} ARIARY le {data.get('last_payment', {}).get('date', 'N/A')}\n" \
                  f"Prochain paiement prévu: {data.get('next_payment_date', 'le 10 du mois prochain')}\n"
         result += "===== Paiements par mois =====\n"
         for month, amount in data['monthly_payments'].items():
-            result += f"- {month}: {amount} €\n"
+            result += f"- {month}: {amount} ARIARY\n"
         return result
     
     elif data_type == 'total_events':
@@ -980,7 +980,7 @@ def format_data_for_prompt(data, data_type):
     elif data_type == 'total_payments':
         if 'error' in data:
             return f"===== Statistiques globales =====\nErreur: {data['error']}"
-        return f"===== Statistiques globales =====\nMontant total des paiements: {data['total_payments']} €\nPériode: {data['months']}"
+        return f"===== Statistiques globales =====\nMontant total des paiements: {data['total_payments']} ARIARY\nPériode: {data['months']}"
     
     elif data_type == 'total_agents':
         if 'error' in data:
@@ -1010,7 +1010,7 @@ def format_data_for_prompt(data, data_type):
             return f"===== Statistiques globales =====\nErreur: {data['error']}"
         result = f"===== Paiements par période =====\n"
         for month, amount in data['payments_by_period'].items():
-            result += f"- {month}: {amount} €\n"
+            result += f"- {month}: {amount} ARIARY\n"
         result += f"Période: {data['months']}"
         return result
     
