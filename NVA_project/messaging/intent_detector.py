@@ -28,7 +28,7 @@ def detect_intent(message, is_admin=False):
         'payments': {
             'keywords': [
                 'paiement', 'salaire', 'rémunération', 'remuneration', 'argent', 'combien',
-                'gagné', 'gagne', 'euros', 'montant', 'versement', 'virement', 'banque'
+                'gagné', 'gagne', 'ar', 'montant', 'versement', 'virement', 'banque'
             ],
             'score': 0
         },
