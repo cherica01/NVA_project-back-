@@ -163,6 +163,7 @@ class UserProfileView(APIView):
         # Utilise l'utilisateur connecté (request.user)
         agent = request.user
         serializer = AgentSerializers(agent)
+        print("Réponse envoyée:", serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class UserProfileView(APIView):
