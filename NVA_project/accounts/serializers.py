@@ -27,7 +27,7 @@ class AgentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'username', 'first_name', 'last_name', 'email','is_superuser',
             'age', 'gender', 'location', 'phone_number', 
             'measurements', 'total_payments', 'date_joined',
             'photos', 'profile_photo', 'cover_photo', 'animation_photo'
